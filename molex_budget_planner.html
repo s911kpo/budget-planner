@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每月預算規劃試算表</title>
+<style>
+  :root{
+    --bg:#0b0b0d;
+    --surface:#161618;
+    --surface-2:#1f1f23;
+    --border:#2a2a2e;
+    --green:#76b900;
+    --green-dim:#5a8f00;
+    --green-soft:rgba(118,185,0,0.12);
+    --text:#f5f5f5;
+    --text-2:#a8a8ad;
+    --text-3:#6e6e74;
+    --red:#ff5c5c;
+    --amber:#ffb84d;
+    --blue:#4da6ff;
+    --purple:#b38bff;
+    --pink:#ff7eb6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    padding:16px;
+    font-size:16px;
+  }
+  .container{max-width:980px;margin:0 auto}
+  .header{
+    display:flex;align-items:center;gap:12px;
+    padding:20px 0 24px;
+  }
+  .logo-bar{width:5px;height:34px;background:var(--green);border-radius:2px}
+  .header h1{font-size:22px;font-weight:700;letter-spacing:-0.02em}
+  .header .sub{font-size:14px;color:var(--text-2);margin-top:2px}
+
+  .kpis{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;
+  }
+  .kpi{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;padding:14px 16px;
+  }
+  .kpi small{display:block;font-size:13px;color:var(--text-2);margin-bottom:6px;font-weight:500}
+  .kpi strong{font-size:24px;font-weight:700;letter-spacing:-0.02em}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:14px;margin-bottom:14px;overflow:hidden;
+  }
+  .ch{
+    display:flex;align-items:center;gap:10px;
+    padding:14px 18px;border-bottom:1px solid var(--border);
+    background:var(--surface-2);
+  }
+  .ch .dot{width:10px;height:10px;border-radius:3px;background:var(--green);flex-shrink:0}
+  .ch .ttl{font-size:17px;font-weight:600;flex:1}
+  .ch .tot{font-size:14px;color:var(--text-2)}
+  .ch .tot b{color:var(--green);font-weight:700}
+
+  table{width:100%;border-collapse:collapse}
+  td{padding:12px 18px;font-size:16px;vertical-align:middle}
+  tr:not(:last-child) td{border-bottom:1px solid var(--border)}
+  td.lbl{color:var(--text);width:58%;font-weight:500}
+  td.lbl .sub{display:block;font-size:13px;color:var(--text-3);margin-top:2px;font-weight:400}
+  td.lbl .tag{
+    font-size:11px;padding:2px 8px;border-radius:99px;margin-left:6px;
+    vertical-align:middle;font-weight:600;
+  }
+  .tlock{background:rgba(255,255,255,0.08);color:var(--text-2)}
+  .tedit{background:var(--green-soft);color:var(--green)}
+  td.val{text-align:right;font-weight:600;color:var(--text-2);white-space:nowrap;font-size:16px}
+  td.val input{
+    width:108px;font-size:16px;text-align:right;padding:8px 10px;
+    border:1px solid var(--border);border-radius:8px;
+    background:var(--bg);color:var(--text);font-weight:600;
+    transition:border-color .15s;
+  }
+  td.val input:focus{outline:none;border-color:var(--green)}
+  td.val input::-webkit-outer-spin-button,
+  td.val input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  td.val input[type=number]{-moz-appearance:textfield}
+  .grp{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+  .grp input{width:58px}
+  .grp .unit{font-size:14px;color:var(--text-2)}
+  .grp .rv{min-width:66px;text-align:right;color:var(--text-2);font-weight:600}
+  .tax-grp .rv{color:var(--red)}
+
+  .take-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 18px;border-top:2px solid var(--green);
+    background:var(--green-soft);
+  }
+  .take-row span:first-child{font-size:16px;font-weight:600}
+  .take-row span:last-child{font-size:24px;font-weight:700;color:var(--green)}
+
+  .flow{padding:4px 18px 16px}
+  .frow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:16px;color:var(--text-2)}
+  .ftotal{display:flex;justify-content:space-between;padding:14px 0 0;font-size:18px;font-weight:700;color:var(--text)}
+  .bar-track{height:12px;border-radius:99px;background:var(--bg);overflow:hidden;display:flex;margin:14px 0 8px;border:1px solid var(--border)}
+  .bar-seg{height:100%;transition:width .3s}
+  .leg{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px}
+  .leg-i{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2)}
+  .leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .alert{border-radius:10px;padding:12px 16px;font-size:15px;margin-top:12px;font-weight:500}
+  .aok{background:var(--green-soft);color:var(--green);border:1px solid var(--green-dim)}
+  .aw{background:rgba(255,184,77,0.1);color:var(--amber);border:1px solid rgba(255,184,77,0.3)}
+  .ad{background:rgba(255,92,92,0.1);color:var(--red);border:1px solid rgba(255,92,92,0.3)}
+
+  .chart-outer{padding:8px 18px 18px}
+  .bars{display:flex;flex-direction:column;gap:12px}
+  .crow{display:flex;align-items:center;gap:12px}
+  .clabel{width:84px;font-size:14px;color:var(--text-2);flex-shrink:0;text-align:right}
+  .ctrack{flex:1;height:26px;background:var(--bg);border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+  .cfill{height:100%;border-radius:5px 0 0 5px;transition:width .3s;display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+  .cval{font-size:13px;font-weight:700;color:#000;white-space:nowrap}
+  .cval-out{font-size:13px;font-weight:600;color:var(--text-2);width:80px;text-align:left;flex-shrink:0}
+
+  .yr-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:16px 18px}
+  .yi{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+  .yl{font-size:13px;color:var(--text-2);margin-bottom:6px}
+  .yv{font-size:20px;font-weight:700}
+  .ytotal{grid-column:1/-1;background:var(--green-soft);border:1px solid var(--green-dim);border-radius:10px;padding:16px}
+  .ytotal .yl{color:var(--green)}
+  .ytotal .yv{color:var(--green);font-size:28px}
+  .note{font-size:13px;color:var(--text-3);line-height:1.7;padding:0 18px 16px}
+
+  @media (max-width:720px){
+    body{padding:10px;font-size:15px}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .kpi strong{font-size:21px}
+    .yr-grid{grid-template-columns:1fr}
+    td{padding:11px 14px}
+    .ch{padding:13px 14px}
+    .flow,.chart-outer,.note{padding-left:14px;padding-right:14px}
+    td.lbl{width:50%}
+    td.val input{width:96px}
+    .clabel{width:66px;font-size:13px}
+    .cval-out{width:66px;font-size:12px}
+    .header h1{font-size:19px}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo-bar"></div>
+    <div>
+      <h1>每月預算規劃試算表</h1>
+      <div class="sub">雙城生活財務模擬 · 2026 法定勞健保級距</div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><small>實拿月薪</small><strong style="color:var(--green)" id="k0">—</strong></div>
+    <div class="kpi"><small>固定支出</small><strong id="k1">—</strong></div>
+    <div class="kpi"><small>主動儲蓄</small><strong style="color:var(--purple)" id="k2">—</strong></div>
+    <div class="kpi"><small>彈性餘裕</small><strong id="k3">—</strong></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot"></div><span class="ttl">薪資扣除（2026 法定）</span></div>
+    <table>
+      <tr><td class="lbl">月薪總額<span class="sub">底薪 $162,000 + 餐補 $3,000</span></td><td class="val">$165,000</td></tr>
+      <tr><td class="lbl">勞保自付<span class="tag tlock">固定</span><span class="sub">45,800 × 12.5% × 20%</span></td><td class="val" style="color:var(--red)">-$1,145</td></tr>
+      <tr><td class="lbl">健保自付<span class="tag tlock">固定</span><span class="sub">169,200 × 5.17% × 30%</span></td><td class="val" style="color:var(--red)">-$2,624</td></tr>
+      <tr><td class="lbl">所得稅預扣<span class="tag tedit">可調整</span><span class="sub">保守抓 5%，報稅後可能退稅</span></td>
+        <td class="val"><div class="grp tax-grp"><input id="taxRate" type="number" value="5" min="0" max="20" step="0.5" oninput="calc()"><span class="unit">%</span><span class="rv" id="tax-rv">—</span></div></td></tr>
+    </table>
+    <div class="take-row"><span>預估實拿月薪</span><span id="take-hero">—</span></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot"></div><span class="ttl">台中固定支出</span><span class="tot">合計 <b id="ct0">—</b></span></div>
+    <table>
+      <tr><td class="lbl">房貸<span class="tag tlock">固定</span></td><td class="val">$35,850</td></tr>
+      <tr><td class="lbl">電費<span class="sub">含夏季高峰</span></td><td class="val"><input id="elec" type="number" value="1500" oninput="calc()"></td></tr>
+      <tr><td class="lbl">水費<span class="sub">雙月帳單均攤</span></td><td class="val"><input id="water" type="number" value="500" oninput="calc()"></td></tr>
+      <tr><td class="lbl">天然氣<span class="sub">熱水、瓦斯</span></td><td class="val"><input id="gas" type="number" value="400" oninput="calc()"></td></tr>
+      <tr><td class="lbl">網路費<span class="sub">家用寬頻</span></td><td class="val"><input id="net" type="number" value="800" oninput="calc()"></td></tr>
+      <tr><td class="lbl">家中基本開銷<span class="sub">日用品、家庭雜支</span></td><td class="val"><input id="home" type="number" value="11000" oninput="calc()"></td></tr>
+      <tr><td class="lbl">儲蓄險<span class="tag tedit">可調整</span><span class="sub">定期定額儲蓄</span></td><td class="val"><input id="insurance" type="number" value="10000" oninput="calc()"></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot"></div><span class="ttl">台北生活支出</span><span class="tot">合計 <b id="ct1">—</b></span></div>
+    <table>
+      <tr><td class="lbl">租屋<span class="sub">含水電、網路</span></td><td class="val"><input id="rent" type="number" value="17000" oninput="calc()"></td></tr>
+      <tr><td class="lbl">餐食<span class="sub">外食、便利商店</span></td><td class="val"><input id="food" type="number" value="11000" oninput="calc()"></td></tr>
+      <tr><td class="lbl">日常交通<span class="sub">機車油錢、悠遊卡</span></td><td class="val"><input id="local" type="number" value="1200" oninput="calc()"></td></tr>
+      <tr><td class="lbl">高鐵往返<span class="tag tedit">可調整</span><span class="sub">$1,400 × 次數 / 月</span></td>
+        <td class="val"><div class="grp"><input id="hsrN" type="number" value="4" min="0" max="8" oninput="calc()"><span class="unit">次</span><span class="rv" id="hsr-rv">—</span></div></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot"></div><span class="ttl">個人生活</span><span class="tot">合計 <b id="ct2">—</b></span></div>
+    <table>
+      <tr><td class="lbl">AI 工具訂閱<span class="sub">Claude Pro 等</span></td><td class="val"><input id="ai" type="number" value="3000" oninput="calc()"></td></tr>
+      <tr><td class="lbl">個人學習<span class="sub">課程、證照、書籍</span></td><td class="val"><input id="learn" type="number" value="2000" oninput="calc()"></td></tr>
+      <tr><td class="lbl">手機費<span class="sub">電信月租</span></td><td class="val"><input id="phone" type="number" value="800" oninput="calc()"></td></tr>
+      <tr><td class="lbl">信用卡費<span class="sub">固定卡費、分期</span></td><td class="val"><input id="card" type="number" value="2000" oninput="calc()"></td></tr>
+      <tr><td class="lbl">健身費用<span class="sub">台北健身房月費</span></td><td class="val"><input id="gym" type="number" value="1800" oninput="calc()"></td></tr>
+      <tr><td class="lbl">娛樂、雜支<span class="sub">理髮、衣物、偶發</span></td><td class="val"><input id="misc" type="number" value="5000" oninput="calc()"></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot"></div><span class="ttl">主動儲蓄</span><span class="tot">合計 <b id="ct3">—</b></span></div>
+    <table>
+      <tr><td class="lbl">緊急備用金<span class="sub">目標 6 個月支出</span></td><td class="val"><input id="emerg" type="number" value="8000" oninput="calc()"></td></tr>
+      <tr><td class="lbl">ETF 定期定額<span class="sub">0050 / 00878</span></td><td class="val"><input id="etf" type="number" value="15000" oninput="calc()"></td></tr>
+      <tr><td class="lbl">子女教育儲蓄<span class="sub">專戶、長期複利</span></td><td class="val"><input id="edu" type="number" value="15000" oninput="calc()"></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot"></div><span class="ttl">每月收支總覽</span></div>
+    <div class="flow">
+      <div class="frow"><span>實拿月薪</span><span style="color:var(--green);font-weight:700" id="fl0">—</span></div>
+      <div class="frow"><span>台中固定支出</span><span style="color:var(--red)" id="fl1">—</span></div>
+      <div class="frow"><span>台北生活支出</span><span style="color:var(--red)" id="fl2">—</span></div>
+      <div class="frow"><span>個人生活費</span><span style="color:var(--red)" id="fl3">—</span></div>
+      <div class="frow"><span>主動儲蓄</span><span style="color:var(--purple);font-weight:700" id="fl4">—</span></div>
+      <div class="ftotal"><span>彈性餘裕（旅行 / 醫療 / 季節）</span><span id="fl5">—</span></div>
+      <div class="bar-track">
+        <div class="bar-seg" id="b0" style="background:var(--blue)"></div>
+        <div class="bar-seg" id="b1" style="background:var(--green)"></div>
+        <div class="bar-seg" id="b2" style="background:var(--pink)"></div>
+        <div class="bar-seg" id="b3" style="background:var(--purple)"></div>
+        <div class="bar-seg" id="b4" style="background:var(--text-3)"></div>
+      </div>
+      <div class="leg">
+        <div class="leg-i"><div class="leg-dot" style="background:var(--blue)"></div><span id="lg0">台中</span></div>
+        <div class="leg-i"><div class="leg-dot" style="background:var(--green)"></div><span id="lg1">台北</span></div>
+        <div class="leg-i"><div class="leg-dot" style="background:var(--pink)"></div><span id="lg2">個人</span></div>
+        <div class="leg-i"><div class="leg-dot" style="background:var(--purple)"></div><span id="lg3">儲蓄</span></div>
+        <div class="leg-i"><div class="leg-dot" style="background:var(--text-3)"></div><span id="lg4">彈性</span></div>
+      </div>
+      <div id="alert-box"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot"></div><span class="ttl">支出結構圖</span></div>
+    <div class="chart-outer">
+      <div class="bars">
+        <div class="crow"><span class="clabel">台中固定</span><div class="ctrack"><div class="cfill" id="cf0" style="background:var(--blue)"><span class="cval" id="cv0"></span></div></div><span class="cval-out" id="co0"></span></div>
+        <div class="crow"><span class="clabel">台北生活</span><div class="ctrack"><div class="cfill" id="cf1" style="background:var(--green)"><span class="cval" id="cv1"></span></div></div><span class="cval-out" id="co1"></span></div>
+        <div class="crow"><span class="clabel">個人生活</span><div class="ctrack"><div class="cfill" id="cf2" style="background:var(--pink)"><span class="cval" id="cv2"></span></div></div><span class="cval-out" id="co2"></span></div>
+        <div class="crow"><span class="clabel">主動儲蓄</span><div class="ctrack"><div class="cfill" id="cf3" style="background:var(--purple)"><span class="cval" id="cv3"></span></div></div><span class="cval-out" id="co3"></span></div>
+        <div class="crow"><span class="clabel">彈性餘裕</span><div class="ctrack"><div class="cfill" id="cf4" style="background:var(--text-3)"><span class="cval" id="cv4"></span></div></div><span class="cval-out" id="co4"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot"></div><span class="ttl">年度試算（含 13 薪）</span></div>
+    <div class="yr-grid">
+      <div class="yi"><div class="yl">彈性餘裕 × 12</div><div class="yv" id="y0">—</div></div>
+      <div class="yi"><div class="yl">13 薪稅後</div><div class="yv" style="color:var(--green)" id="y1">—</div></div>
+      <div class="yi"><div class="yl">主動儲蓄 × 12</div><div class="yv" style="color:var(--purple)" id="y2">—</div></div>
+      <div class="ytotal"><div class="yl">年度有效儲蓄（含 13 薪）</div><div class="yv" id="y3">—</div></div>
+    </div>
+    <div class="note">13 薪以底薪 $162,000 × (1－稅率) 估算。緊急備用金達標後，$8,000 / 月可轉入 ETF 或教育儲蓄，年度儲蓄能力將進一步提升。所有輸入欄位可即時調整，作為每月預算設定基準。</div>
+  </div>
+</div>
+
+<script>
+function f(n){return'$'+Math.round(Math.abs(n)).toLocaleString('en')}
+function pct(v,t){return t>0?Math.max(0,Math.min(100,Math.round(v/t*100))):0}
+function g(id){return document.getElementById(id)}
+function s(id,v){var e=g(id);if(e)e.textContent=v}
+function calc(){
+  var tr=parseFloat(g('taxRate').value)||0;
+  var tax=Math.round(165000*tr/100);
+  var take=165000-1145-2624-tax;
+
+  var elec=+g('elec').value||0,water=+g('water').value||0,gas=+g('gas').value||0,net=+g('net').value||0,home=+g('home').value||0,insurance=+g('insurance').value||0;
+  var rent=+g('rent').value||0,food=+g('food').value||0,local=+g('local').value||0;
+  var hsrN=+g('hsrN').value||0,hsr=hsrN*1400;
+  var ai=+g('ai').value||0,learn=+g('learn').value||0,phone=+g('phone').value||0,card=+g('card').value||0,gym=+g('gym').value||0,misc=+g('misc').value||0;
+  var emerg=+g('emerg').value||0,etf=+g('etf').value||0,edu=+g('edu').value||0;
+
+  var tc=35850+elec+water+gas+net+home+insurance;
+  var tp=rent+food+local+hsr;
+  var ps=ai+learn+phone+card+gym+misc;
+  var sv=emerg+etf+edu;
+  var flex=take-tc-tp-ps-sv;
+
+  s('tax-rv','-'+f(tax)); s('take-hero',f(take)); s('hsr-rv',f(hsr));
+  s('ct0',f(tc)); s('ct1',f(tp)); s('ct2',f(ps)); s('ct3',f(sv));
+  s('k0',f(take)); s('k1','-'+f(tc+tp+ps)); s('k2',f(sv));
+  s('k3',(flex>=0?'':'-')+f(flex));
+  var ke=g('k3'); if(ke)ke.style.color=flex<0?'var(--red)':flex<10000?'var(--amber)':'var(--green)';
+
+  s('fl0',f(take)); s('fl1','-'+f(tc)); s('fl2','-'+f(tp)); s('fl3','-'+f(ps)); s('fl4','-'+f(sv));
+  var fe=g('fl5');
+  if(fe){fe.textContent=(flex>=0?'':'-')+f(flex);fe.style.color=flex<0?'var(--red)':flex<10000?'var(--amber)':'var(--green)';fe.style.fontWeight='700';}
+
+  var T=take>0?take:1;
+  var data=[tc,tp,ps,sv,Math.max(0,flex)];
+  data.forEach(function(v,i){
+    var p=pct(v,T);
+    var b=g('b'+i); if(b)b.style.width=p+'%';
+    var cf=g('cf'+i); if(cf)cf.style.width=p+'%';
+    var cv=g('cv'+i); if(cv)cv.textContent=p>=12?p+'%':'';
+    var co=g('co'+i); if(co)co.textContent=f(v)+(p<12?'  '+p+'%':'');
+  });
+  ['台中','台北','個人','儲蓄','彈性'].forEach(function(l,i){
+    s('lg'+i,l+' '+pct(data[i],T)+'%');
+  });
+
+  var ab=g('alert-box');
+  if(ab)ab.innerHTML=flex<0?'<div class="alert ad">⚠ 出現財務缺口 '+f(flex)+' / 月，請調低主動儲蓄或檢視支出項目。</div>':flex<10000?'<div class="alert aw">彈性餘裕偏低（低於 $10,000），季節性支出恐造成缺口。</div>':'<div class="alert aok">✓ 財務配置健康，彈性餘裕 '+f(flex)+' / 月，足以應對季節性支出。</div>';
+
+  var yr13=Math.round(162000*(1-tr/100));
+  var yrF=flex*12,yrS=(etf+edu)*12,yrT=Math.max(0,yrF)+yr13+yrS;
+  s('y0',(yrF>=0?'':'-')+f(yrF)); s('y1',f(yr13)); s('y2',f(yrS)); s('y3',f(yrT));
+}
+calc();
+</script>
+</body>
+</html>
